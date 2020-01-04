@@ -5,6 +5,7 @@
 #include "Devices/Wemos/WiFiConnector/WiFiConnector.h"
 #include "AWS/AwsManager/AwsManager.h"
 #include "Services/DeployerState/DeployerState.h"
+#include "Services/MuxDocumentsProcessor/MuxDocumentsProcessor.h"
 
 #define WIFI_SSID ""
 #define WIFI_PASSWORD ""
@@ -20,7 +21,7 @@ WiFiConnector wiFiConnector(WIFI_SSID, WIFI_PASSWORD);
 DeployerState deployerState;
 AwsManager awsManager;
 
-StaticJsonDocument<512> awsIotJson;
+StaticJsonDocument<1024> awsIotJson;
 
 void ledCheck() {
   for(int i=0; i<15; i++) {
@@ -36,12 +37,12 @@ void ledCheck() {
 
 void debugCallback(char* message) {
   screen.reset();
-  screen.say(String(message));
+  screen.say(message);
   delay(500);
 }
 
 void connectingCallback() {
-  screen.say(String("."));
+  screen.say(".");
   delay(500);
 }
 
@@ -49,63 +50,56 @@ void subscribeCallback(char* topic, byte* payload, unsigned int length) {
   char trimmedPayload[length];
   strlcpy(trimmedPayload, (char*)payload, length+1);
 
-  DeserializationError error = deserializeJson(awsIotJson, trimmedPayload);
+  DeserializationError deserializationError = deserializeJson(awsIotJson, trimmedPayload);
 
-  if (error) {
+  if (deserializationError) {
     screen.reset();
-    screen.sayln(error.c_str());
-  }
+    screen.sayln("Incomint message on topic: ");
+    screen.sayln(topic);
+    screen.sayln("\nDeserialization Error:");
+    screen.sayln(deserializationError.c_str());
+  } else {
+    if(strcmp(topic, AWS_IOT_UPDATE_DOCUMENTS_TOPIC) == 0) {
+      MuxDocumentsProcessor muxDocumentsProcessor(&awsIotJson);
+      muxDocumentsProcessor.process();
 
-  if(awsIotJson["current"]["state"]["desired"]) {
-    if(awsIotJson["current"]["state"]["desired"]["step"]) {
-      muxManager.step(awsIotJson["current"]["state"]["desired"]["step"].as<int>());
-      deployerState.update("step", awsIotJson["current"]["state"]["desired"]["step"].as<int>());
-      awsManager.reportState(deployerState.jsonState());
-    }
+      if(muxDocumentsProcessor.hasValidStep()) {
+        muxManager.step(muxDocumentsProcessor.step());
+        deployerState.update("step", muxDocumentsProcessor.step());        
+      } 
+
+      if(muxDocumentsProcessor.hasDesiredKey()) {
+        awsManager.reportState(deployerState.jsonState());     
+      }
+    }   
   }
 }
 
 void buttonsActionCallback(const char* buttonCode) {
   deployerState.update("button", buttonCode);
   awsManager.reportState(deployerState.jsonState());
-
-  // screen.reset();
-  // screen.say(String(buttonCode));
-
-  // if(buttonsManager.isDownButton(buttonCode)) {
-  //   muxManager.prevStep();
-  // }
-
-  // if(buttonsManager.isUpButton(buttonCode)) {
-  //   muxManager.nextStep();
-  // }
-
-  // if(buttonsManager.isSelectButton(buttonCode)) {
-  //   muxManager.readyStep();
-  //   ledCheck();
-  // }
 }
 
 void setupWiFi() {
-  screen.say(String("Connecting to WiFi"));
+  screen.say("Connecting to WiFi");
   wiFiConnector.connect(&connectingCallback);
 
   screen.reset();
-  screen.sayln(String("WiFi connected"));
-  screen.say(String("IP address: "));
+  screen.sayln("WiFi connected");
+  screen.say("IP address: ");
   screen.sayln(WiFi.localIP().toString());
-  screen.say(String("RSSI: "));
-  screen.sayln(String(WiFi.RSSI()));
+  screen.say("RSSI: ");
+  screen.sayln(WiFi.RSSI());
   delay(2000);
 }
 
 void connectMQTT() {
   screen.reset();
-  screen.sayln(String("Connecting to AWS IoT..."));
+  screen.sayln("Connecting to AWS IoT...");
 
 	awsManager.reconnect();
 
-  screen.sayln(String("AWS IoT connected"));
+  screen.sayln("AWS IoT connected");
   delay(2000);
 }
 
@@ -118,8 +112,12 @@ void setup() {
   awsManager.setup(subscribeCallback);
   connectMQTT();
 
+  deployerState.update("step", 0); 
+  deployerState.update("button", ButtonParser::NO_BUTTON); 
+  awsManager.reportState(deployerState.jsonState());
+
   screen.reset();
-  screen.say(String("Hello Decisely!"));
+  screen.say("Hello Decisely!");
 }
 
 void loop() {

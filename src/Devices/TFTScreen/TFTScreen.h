@@ -13,8 +13,14 @@ class TFTScreen {
   void reset();
   void softReset();
   void clearLine();
-  void say(String Text);
-  void sayln(String Text);
-  void say(char* Text);
-  void sayln(char* Text);
+  void say(String);
+  void sayln(String);
+  void say(std::string);
+  void sayln(std::string);
+  void say(char*);
+  void sayln(char*);
+  void say(const char*);
+  void sayln(const char*);
+  void say(int);
+  void sayln(int);
 };

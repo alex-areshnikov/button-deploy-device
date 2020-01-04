@@ -30,10 +30,34 @@ void TFTScreen::sayln(String text) {
     tft->println(text);
 }
 
+void TFTScreen::say(std::string text) {
+    say(&text[0]);
+}
+
+void TFTScreen::sayln(std::string text) {
+    sayln(&text[0]);
+}
+
 void TFTScreen::say(char* text) {
-    tft->print(text);
+    say(String(text));
+}
+
+void TFTScreen::sayln(const char* text) {
+    sayln(String(text));
+}
+
+void TFTScreen::say(const char* text) {
+    say(String(text));
 }
 
 void TFTScreen::sayln(char* text) {
-    tft->println(text);
+    sayln(String(text));
+}
+
+void TFTScreen::say(int text) {
+    say(String(text));
+}
+
+void TFTScreen::sayln(int text) {
+    sayln(String(text));
 }
