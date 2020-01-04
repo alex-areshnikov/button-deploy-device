@@ -10,5 +10,6 @@ class DeployerState {
 	public:
 		DeployerState();
 		void update(const char*, const char*);
+		void update(const char*, int);
 		char* jsonState();
 };

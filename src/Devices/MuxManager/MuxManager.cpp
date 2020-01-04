@@ -6,8 +6,12 @@ MuxManager::MuxManager(int s1, int s2, int s3, int s4) {
   this->readyStep();
 };
 
+void MuxManager::step(int step) {
+  this->muxController->channel(step);
+};
+
 void MuxManager::readyStep() {
-  this->muxController->channel(0);
+  this->step(0);
 };
 
 void MuxManager::nextStep() {
@@ -15,7 +19,7 @@ void MuxManager::nextStep() {
     this->currentStep = 0;
   }
 
-  this->muxController->channel(this->currentStep);
+  this->step(this->currentStep);
 };
 
 void MuxManager::prevStep() {
@@ -23,5 +27,5 @@ void MuxManager::prevStep() {
     this->currentStep = 15;
   }
 
-  this->muxController->channel(this->currentStep);
+  this->step(this->currentStep);
 };

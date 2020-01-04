@@ -8,6 +8,7 @@ class MuxManager {
 	public:
 		MuxManager(int, int, int, int);
 
+		void step(int);
 		void nextStep();
 		void prevStep();
 		void readyStep();

@@ -12,7 +12,8 @@ class AwsManager {
 
 	public:
 		AwsManager();
+		void setup(void (onMessageCallback)(char*, byte*, unsigned int));
 		void process();
-		bool connect(void (*connectingCallback)());
-		void reportState(char*);	
+		void reconnect();
+		void reportState(char*);
 };

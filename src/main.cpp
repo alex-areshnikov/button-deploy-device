@@ -17,8 +17,10 @@ TFTScreen screen(TFT_CS, TFT_DC, TFT_RST);
 ButtonsManager buttonsManager;
 MuxManager muxManager(D0, D1, D2, D3);
 WiFiConnector wiFiConnector(WIFI_SSID, WIFI_PASSWORD);
-AwsManager awsManager;
 DeployerState deployerState;
+AwsManager awsManager;
+
+StaticJsonDocument<512> awsIotJson;
 
 void ledCheck() {
   for(int i=0; i<15; i++) {
@@ -41,6 +43,26 @@ void debugCallback(char* message) {
 void connectingCallback() {
   screen.say(String("."));
   delay(500);
+}
+
+void subscribeCallback(char* topic, byte* payload, unsigned int length) {
+  char trimmedPayload[length];
+  strlcpy(trimmedPayload, (char*)payload, length+1);
+
+  DeserializationError error = deserializeJson(awsIotJson, trimmedPayload);
+
+  if (error) {
+    screen.reset();
+    screen.sayln(error.c_str());
+  }
+
+  if(awsIotJson["current"]["state"]["desired"]) {
+    if(awsIotJson["current"]["state"]["desired"]["step"]) {
+      muxManager.step(awsIotJson["current"]["state"]["desired"]["step"].as<int>());
+      deployerState.update("step", awsIotJson["current"]["state"]["desired"]["step"].as<int>());
+      awsManager.reportState(deployerState.jsonState());
+    }
+  }
 }
 
 void buttonsActionCallback(const char* buttonCode) {
@@ -77,19 +99,14 @@ void setupWiFi() {
   delay(2000);
 }
 
-void setupMQTT() {
+void connectMQTT() {
   screen.reset();
-  screen.say(String("Connecting to AWS IoT"));
+  screen.sayln(String("Connecting to AWS IoT..."));
 
-  if(awsManager.connect(&connectingCallback)) {
-    screen.reset();
-    screen.sayln(String("AWS IoT connected"));
-    delay(2000);
-  } else {
-    screen.sayln(String("FAILED"));
-    delay(2000);
-    ESP.reset();
-  }
+	awsManager.reconnect();
+
+  screen.sayln(String("AWS IoT connected"));
+  delay(2000);
 }
 
 void setup() {
@@ -98,7 +115,8 @@ void setup() {
   ledCheck();
 
   setupWiFi();
-  setupMQTT();
+  awsManager.setup(subscribeCallback);
+  connectMQTT();
 
   screen.reset();
   screen.say(String("Hello Decisely!"));
@@ -107,4 +125,6 @@ void setup() {
 void loop() {
   buttonsManager.process(&buttonsActionCallback);
   awsManager.process();
+
+  delay(50);
 }
