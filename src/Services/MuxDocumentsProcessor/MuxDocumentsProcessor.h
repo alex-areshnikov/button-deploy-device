@@ -13,8 +13,11 @@ class MuxDocumentsProcessor {
 		void process();
 		int step();
 		bool hasValidStep();		
+		bool isErred();
 		bool hasCurrentKey();
 		bool hasStateKey();
 		bool hasDesiredKey();
 		bool hasStepKey();
+		bool hasErrorKey();
+		bool erred();
 };

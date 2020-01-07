@@ -1,23 +1,23 @@
 #include "ButtonsManager.h"
 
 ButtonsManager::ButtonsManager() {
-  this->wakeupper = new Wakeupper(WAKEUP_INTERVAL_MS);
-  this->buttonsVoltageReader = new ButtonsVoltageReader();
-  this->buttonParser = new ButtonParser();
-  this->buttonsHistory = new ButtonsHistory(ButtonParser::NO_BUTTON);
+  wakeupper = new Wakeupper(WAKEUP_INTERVAL_MS);
+  buttonsVoltageReader = new ButtonsVoltageReader();
+  buttonParser = new ButtonParser();
+  buttonsHistory = new ButtonsHistory(ButtonParser::NO_BUTTON);
 };
 
 void ButtonsManager::process(void (*buttonsActionCallback)(const char* code)) {
-  if (!this->wakeupper->isWakeupTime()) {
+  if (!wakeupper->isWakeupTime()) {
     return;
   }
 
-  int voltage = this->buttonsVoltageReader->voltage();
-  const char* button_code = this->buttonParser->buttonCode(voltage);  
-  this->buttonsHistory->update(button_code);
+  int voltage = buttonsVoltageReader->voltage();
+  const char* button_code = buttonParser->buttonCode(voltage);  
+  buttonsHistory->update(button_code);
 
-  if(this->buttonsHistory->isStatusChanged()) {
-    (*buttonsActionCallback)(this->buttonsHistory->currentButtonCode());
+  if(buttonsHistory->isStatusChanged()) {
+    (*buttonsActionCallback)(buttonsHistory->currentButtonCode());
   }
 };
 

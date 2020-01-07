@@ -4,6 +4,13 @@ DeployerState::DeployerState() {
   stateObj = staticJsonDocument.createNestedObject("state");
 	reportedObj = stateObj.createNestedObject("reported");
 	stateObj["desired"] = nullptr;
+
+	// TODO: reportedObj["button"] = ButtonParser::NO_BUTTON;
+  // TODO: reportedObj["step"] = MuxManager::READY_STEP;
+	reportedObj["button"] = "no_button_pressed";
+  reportedObj["step"] = 0;
+
+  reportedObj["error"] = false;
 };
 
 void DeployerState::update(const char* key, const char* value) {

@@ -11,8 +11,8 @@
 
 class Wakeupper {
 	private:
-		unsigned int ms_wakeup_interval;
-		unsigned long last_wakeup_timestamp;
+		unsigned int msWakeupInterval;
+		unsigned long lastWakeupTimestamp;
 		
 		unsigned long currentMillis();
 

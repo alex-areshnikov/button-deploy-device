@@ -12,8 +12,12 @@ void MuxDocumentsProcessor::process() {
 };
 
 bool MuxDocumentsProcessor::hasValidStep() {
-	return(desiredStep >=0 && desiredStep < 16);
-}
+	return(desiredStep >=0 && desiredStep < 15);
+};
+
+bool MuxDocumentsProcessor::isErred() {
+	return(hasErrorKey() && erred());
+};
 
 int MuxDocumentsProcessor::step() {
 	return(desiredStep);
@@ -44,4 +48,14 @@ bool MuxDocumentsProcessor::hasStepKey() {
 	if(!hasDesiredKey()) { return(false); }
 	if((*awsIotJson)[AWS_IOT_CURRENT_KEY][AWS_IOT_STATE_KEY][AWS_IOT_DESIRED_KEY].containsKey("step")) { return(true); }
 	return(false);
+};
+
+bool MuxDocumentsProcessor::hasErrorKey() {
+	if(!hasDesiredKey()) { return(false); }
+	if((*awsIotJson)[AWS_IOT_CURRENT_KEY][AWS_IOT_STATE_KEY][AWS_IOT_DESIRED_KEY].containsKey("error")) { return(true); }
+	return(false);
+};
+
+bool MuxDocumentsProcessor::erred() {
+	return((*awsIotJson)[AWS_IOT_CURRENT_KEY][AWS_IOT_STATE_KEY][AWS_IOT_DESIRED_KEY]["error"].as<bool>());
 };

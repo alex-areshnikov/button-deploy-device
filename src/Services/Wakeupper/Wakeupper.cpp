@@ -1,15 +1,15 @@
 #include "Wakeupper.h"
 
-Wakeupper::Wakeupper(int ms_wakeup_interval) {
-	this->ms_wakeup_interval = ms_wakeup_interval;
-	this->last_wakeup_timestamp = currentMillis();
+Wakeupper::Wakeupper(int msWakeupInterval) {
+	this->msWakeupInterval = msWakeupInterval;
+	this->lastWakeupTimestamp = currentMillis();
 }
 
 bool Wakeupper::isWakeupTime() {
-	unsigned long ms_since_wakeup = currentMillis() - this->last_wakeup_timestamp;
+	unsigned long msSinceWakeup = currentMillis() - lastWakeupTimestamp;
 
-	if(ms_since_wakeup >= this->ms_wakeup_interval) {
-		this->last_wakeup_timestamp = currentMillis();
+	if(msSinceWakeup >= msWakeupInterval) {
+		lastWakeupTimestamp = currentMillis();
 		return(true);
 	}
 

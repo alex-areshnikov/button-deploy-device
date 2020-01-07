@@ -1,27 +1,27 @@
 #include "ButtonsHistory.h"
 
 ButtonsHistory::ButtonsHistory(const char* noPressButtonCode) {
-	this->buttonCode = noPressButtonCode;
-	this->prevButtonCode = noPressButtonCode;
+	buttonCode = noPressButtonCode;
+	prevButtonCode = noPressButtonCode;
 }
 
 void ButtonsHistory::update(const char* newButtonCode) {
-	if(this->prevButtonCode == this->buttonCode && this->buttonCode == newButtonCode) {
+	if(prevButtonCode == buttonCode && buttonCode == newButtonCode) {
 		return;
 	}
 
-	this->prevButtonCode = this->buttonCode;
-	this->buttonCode = newButtonCode;
+	prevButtonCode = buttonCode;
+	buttonCode = newButtonCode;
 };
 
 bool ButtonsHistory::isStatusChanged() {
-	return(this->prevButtonCode != this->buttonCode);
+	return(prevButtonCode != buttonCode);
 };
 
 const char* ButtonsHistory::previousButtonCode() {
-	return(this->prevButtonCode);
+	return(prevButtonCode);
 };
 
 const char* ButtonsHistory::currentButtonCode() {
-	return(this->buttonCode);
+	return(buttonCode);
 };
