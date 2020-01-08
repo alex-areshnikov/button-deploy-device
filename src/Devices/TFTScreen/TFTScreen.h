@@ -1,3 +1,6 @@
+#ifndef tft_screen_h
+#define tft_screen_h
+
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
@@ -24,3 +27,5 @@ class TFTScreen {
   void say(int);
   void sayln(int);
 };
+
+#endif

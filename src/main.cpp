@@ -1,11 +1,16 @@
 #include <Arduino.h>
+#include <Adafruit_Fingerprint.h>
+
 #include "Devices/TFTScreen/TFTScreen.h"
 #include "Devices/Buttons/ButtonsManager/ButtonsManager.h"
 #include "Devices/MuxManager/MuxManager.h"
 #include "Devices/Wemos/WiFiConnector/WiFiConnector.h"
+#include "Devices/Fingerprint/Initializer/Initializer.h"
+#include "Devices/Fingerprint/Reader/Reader.h"
+#include "Devices/Fingerprint/Enroller/Enroller.h"
 #include "AWS/AwsManager/AwsManager.h"
 #include "Services/DeployerState/DeployerState.h"
-#include "Services/MuxDocumentsProcessor/MuxDocumentsProcessor.h"
+#include "Services/DocumentsProcessor/DocumentsProcessor.h"
 
 #define WIFI_SSID ""
 #define WIFI_PASSWORD ""
@@ -15,11 +20,13 @@
 #define TFT_DC     D8
 
 TFTScreen screen(TFT_CS, TFT_DC, TFT_RST);
+Adafruit_Fingerprint middleFinger = Adafruit_Fingerprint(&Serial);
 ButtonsManager buttonsManager;
 MuxManager muxManager(D0, D1, D2, D3);
 WiFiConnector wiFiConnector(WIFI_SSID, WIFI_PASSWORD);
 DeployerState deployerState;
 AwsManager awsManager;
+Fingerprint::Reader middleFingerReader(&middleFinger, &screen);
 
 StaticJsonDocument<1024> awsIotJson;
 
@@ -46,17 +53,23 @@ void subscribeCallback(char* topic, byte* payload, unsigned int length) {
     screen.sayln(topic);
     screen.sayln("\nDeserialization Error:");
     screen.sayln(deserializationError.c_str());
-  } else if(strcmp(topic, AWS_IOT_UPDATE_DOCUMENTS_TOPIC) == 0) {    
-    MuxDocumentsProcessor muxDocumentsProcessor(&awsIotJson);
-    muxDocumentsProcessor.process();
+  } else if(strcmp(topic, AWS_IOT_UPDATE_DOCUMENTS_TOPIC) == 0) { 
+    DocumentsProcessor documentsProcessor(&awsIotJson);
+    // FingerprintDocumentsProcessor fingerprintDocumentsProcessor(&awsIotJson);
+    documentsProcessor.process();
 
-    if(muxDocumentsProcessor.hasValidStep()) {
-      muxManager.step(muxDocumentsProcessor.step(), muxDocumentsProcessor.isErred());
-      deployerState.update("step", muxDocumentsProcessor.step());        
-      deployerState.update("error", muxDocumentsProcessor.isErred());
+    if(documentsProcessor.hasValidStep()) {
+      muxManager.step(documentsProcessor.step(), documentsProcessor.isErred());
+      deployerState.update("step", documentsProcessor.step());        
+      deployerState.update("error", documentsProcessor.isErred());
     } 
 
-    if(muxDocumentsProcessor.hasDesiredKey()) {
+    if(documentsProcessor.isFingerprintEnroll()) {
+      Fingerprint::Enroller middleFingerEnroller(&middleFinger, &screen, documentsProcessor.fingerprintEnrollId);
+      middleFingerEnroller.call();
+    }
+
+    if(documentsProcessor.hasDesiredKey()) {
       awsManager.reportState(deployerState.jsonState());     
     } 
   }
@@ -90,6 +103,8 @@ void connectMQTT() {
   delay(2000);
 }
 
+
+
 void setup() {
   screen.initialize();
 
@@ -102,6 +117,9 @@ void setup() {
 
   awsManager.reportState(deployerState.jsonState());
 
+  Fingerprint::Initializer middleFingerInitializer(&middleFinger, &screen);
+  middleFingerInitializer.call();
+
   screen.reset();
   screen.say("Hello Decisely!");
 }
@@ -110,6 +128,8 @@ void loop() {
   buttonsManager.process(&buttonsActionCallback);
   awsManager.process();
   muxManager.process();
+  middleFingerReader.process();
 
   delay(50);
 }
+
