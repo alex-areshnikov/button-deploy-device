@@ -132,4 +132,6 @@ void Enroller::reportError() {
 	screen->sayln("\nERROR. Enrollment cancelled.");
 
 	delay(5000);
-}
+
+	screen->reset();
+};

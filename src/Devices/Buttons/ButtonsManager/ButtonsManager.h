@@ -15,7 +15,7 @@ class ButtonsManager {
 	public:
 		ButtonsManager();
 
-		void process(void (*buttonsActionCallback)(const char*));
+		void process(void (*)(const char*));
 		bool isDownButton(const char*);
 		bool isUpButton(const char*);
 		bool isSelectButton(const char*);

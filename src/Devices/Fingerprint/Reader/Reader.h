@@ -10,9 +10,11 @@ namespace Fingerprint {
 			Adafruit_Fingerprint *middleFinger;
 			TFTScreen *screen;
 			Wakeupper *wakeupper;
+			void (*scanSuccessCallback)(int);
+			void (*scanFailureCallback)();
 			
 		public:
-			Reader(Adafruit_Fingerprint*, TFTScreen*);
+			Reader(Adafruit_Fingerprint*, TFTScreen*, void (*)(int), void (*)());
 
 			void process();
 	};

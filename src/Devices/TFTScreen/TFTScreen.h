@@ -4,10 +4,15 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
+#include "../../Services/DelayedExecuter/DelayedExecuter.h"
 
 class TFTScreen {
   private:  
   Adafruit_ST7735 *tft;
+
+  DelayedExecuter *delayedSayExecuter;
+  String delayedText;
+  char countdownBuffer[2];
 
   public:
   TFTScreen(int8_t cs, int8_t dc, int8_t rst);
@@ -16,6 +21,9 @@ class TFTScreen {
   void reset();
   void softReset();
   void clearLine();
+  void delayedSay(String, float);
+  void process();
+  void renderCountdown();
   void say(String);
   void sayln(String);
   void say(std::string);

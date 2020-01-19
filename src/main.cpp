@@ -26,7 +26,6 @@ MuxManager muxManager(D0, D1, D2, D3);
 WiFiConnector wiFiConnector(WIFI_SSID, WIFI_PASSWORD);
 DeployerState deployerState;
 AwsManager awsManager;
-Fingerprint::Reader middleFingerReader(&middleFinger, &screen);
 
 StaticJsonDocument<1024> awsIotJson;
 
@@ -40,6 +39,36 @@ void connectingCallback() {
   screen.say(".");
   delay(500);
 }
+
+// TODO refactor
+
+void scanSuccessCallback(int fingerID) {
+  muxManager.step(1);
+  delay(200);
+  muxManager.step(2);
+
+  screen.reset();
+  screen.sayln("Access Granted!");
+
+  muxManager.delayedStep(15.0, MuxManager::READY_STEP);
+  screen.delayedSay("Hello Decisely!", 15.0);
+  // deployerState.update("step", 2);    
+  // awsManager.reportState(deployerState.jsonState());   
+}
+
+void scanFailureCallback() {
+  muxManager.step(1, true);
+
+  screen.reset();
+  screen.sayln("Access Denied");
+  screen.sayln("Unrecognized finger");
+
+  muxManager.delayedStep(3.0, MuxManager::READY_STEP);
+  screen.delayedSay("Hello Decisely!", 3.0);
+  // deployerState.update("step", 1);
+  // deployerState.update("error", true);  
+}
+Fingerprint::Reader middleFingerReader(&middleFinger, &screen, &scanSuccessCallback, &scanFailureCallback);
 
 void subscribeCallback(char* topic, byte* payload, unsigned int length) {
   char trimmedPayload[length];
@@ -103,32 +132,37 @@ void connectMQTT() {
   delay(2000);
 }
 
-
-
 void setup() {
   screen.initialize();
 
   muxManager.ledCheck();
+  muxManager.step(MuxManager::INITIALIZING_STEP);
 
   setupWiFi();
   
   awsManager.setup(subscribeCallback);
   connectMQTT();
 
-  awsManager.reportState(deployerState.jsonState());
-
   Fingerprint::Initializer middleFingerInitializer(&middleFinger, &screen);
   middleFingerInitializer.call();
 
+  awsManager.reportState(deployerState.jsonState());
+
   screen.reset();
   screen.say("Hello Decisely!");
+
+  muxManager.step(MuxManager::READY_STEP);
 }
 
 void loop() {
   buttonsManager.process(&buttonsActionCallback);
   awsManager.process();
   muxManager.process();
-  middleFingerReader.process();
+  screen.process();
+
+  if(muxManager.isReadyStep()) {
+    middleFingerReader.process();
+  }
 
   delay(50);
 }
