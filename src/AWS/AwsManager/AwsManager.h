@@ -1,3 +1,6 @@
+#ifndef aws_manager_h
+#define aws_manager_h
+
 #include <WiFiClientSecure.h>
 #include <PubSubClient.h>
 #include "../../Services/Wakeupper/Wakeupper.h"
@@ -17,3 +20,5 @@ class AwsManager {
 		void reconnect();
 		void reportState(char*);
 };
+
+#endif

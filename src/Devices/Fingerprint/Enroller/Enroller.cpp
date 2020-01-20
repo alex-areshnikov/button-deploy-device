@@ -8,31 +8,29 @@ Enroller::Enroller(Adafruit_Fingerprint* middleFinger, TFTScreen* screen, int en
 	this->enrollId = enrollId;
 };
 
-void Enroller::call() {
+uint8_t Enroller::call() {
 	screen->reset();
 	screen->say("Enrolling #");
 	screen->sayln(enrollId);
 	screen->sayln("Scan your finger");
 
 	scanFinger();
-	if(convertImage(1) != FINGERPRINT_OK)  { reportError(); return; }
+	if(convertImage(1) != FINGERPRINT_OK)  { reportError(); return(ENROLL_FAIL); }
 	
 	screen->sayln("Remove finger");
 	waitNoFinger();
 	
 	screen->sayln("Place same finger again");
 	scanFinger();
-	if(convertImage(2) != FINGERPRINT_OK)  { reportError(); return; }
+	if(convertImage(2) != FINGERPRINT_OK)  { reportError(); return(ENROLL_FAIL); }
 
-	if(checkImages() != FINGERPRINT_OK) { reportError(); return; }
-	if(stroreFingerprint() != FINGERPRINT_OK)  { reportError(); return; }
+	if(checkImages() != FINGERPRINT_OK) { reportError(); return(ENROLL_FAIL); }
+	if(stroreFingerprint() != FINGERPRINT_OK)  { reportError(); return(ENROLL_FAIL); }
 	
 	screen->say("\nSuccessfully Enrolled #");
 	screen->sayln(enrollId);
-
-	delay(5000);
-
-	screen->reset();
+	
+	return ENROLL_OK;
 };
 
 void Enroller::scanFinger() {
@@ -88,7 +86,7 @@ uint8_t Enroller::convertImage(int sequence) {
 };
 
 void Enroller::waitNoFinger() {
-	uint8_t result;
+	uint8_t result = FINGERPRINT_OK;
 	while (result != FINGERPRINT_NOFINGER) {
     result = middleFinger->getImage();
 		delay(500);
@@ -129,9 +127,5 @@ uint8_t Enroller::stroreFingerprint() {
 };
 
 void Enroller::reportError() {
-	screen->sayln("\nERROR. Enrollment cancelled.");
-
-	delay(5000);
-
-	screen->reset();
+	screen->sayln("\nERROR\nEnrollment cancelled.");
 };

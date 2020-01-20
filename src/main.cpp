@@ -11,6 +11,7 @@
 #include "AWS/AwsManager/AwsManager.h"
 #include "Services/DeployerState/DeployerState.h"
 #include "Services/DocumentsProcessor/DocumentsProcessor.h"
+#include "Services/DeviceActions/DeviceActions.h"
 
 #define WIFI_SSID ""
 #define WIFI_PASSWORD ""
@@ -26,6 +27,7 @@ MuxManager muxManager(D0, D1, D2, D3);
 WiFiConnector wiFiConnector(WIFI_SSID, WIFI_PASSWORD);
 DeployerState deployerState;
 AwsManager awsManager;
+DeviceActions deviceActions(&screen, &muxManager, &awsManager, &deployerState);
 
 StaticJsonDocument<1024> awsIotJson;
 
@@ -40,33 +42,15 @@ void connectingCallback() {
   delay(500);
 }
 
-// TODO refactor
-
 void scanSuccessCallback(int fingerID) {
-  muxManager.step(1);
-  delay(200);
-  muxManager.step(2);
-
-  screen.reset();
-  screen.sayln("Access Granted!");
-
-  muxManager.delayedStep(15.0, MuxManager::READY_STEP);
-  screen.delayedSay("Hello Decisely!", 15.0);
-  // deployerState.update("step", 2);    
-  // awsManager.reportState(deployerState.jsonState());   
+  deployerState.update("finger_id", fingerID);
+  deviceActions.execute(DeviceActions::ACCESS_GRANTED);
+  deviceActions.execute(DeviceActions::READY, 15);  
 }
 
 void scanFailureCallback() {
-  muxManager.step(1, true);
-
-  screen.reset();
-  screen.sayln("Access Denied");
-  screen.sayln("Unrecognized finger");
-
-  muxManager.delayedStep(3.0, MuxManager::READY_STEP);
-  screen.delayedSay("Hello Decisely!", 3.0);
-  // deployerState.update("step", 1);
-  // deployerState.update("error", true);  
+  deviceActions.execute(DeviceActions::ACCESS_DENIED);
+  deviceActions.execute(DeviceActions::READY, 3);
 }
 Fingerprint::Reader middleFingerReader(&middleFinger, &screen, &scanSuccessCallback, &scanFailureCallback);
 
@@ -78,7 +62,7 @@ void subscribeCallback(char* topic, byte* payload, unsigned int length) {
 
   if (deserializationError) {
     screen.reset();
-    screen.sayln("Incomint message on topic: ");
+    screen.sayln("Incoming message on topic: ");
     screen.sayln(topic);
     screen.sayln("\nDeserialization Error:");
     screen.sayln(deserializationError.c_str());
@@ -95,7 +79,19 @@ void subscribeCallback(char* topic, byte* payload, unsigned int length) {
 
     if(documentsProcessor.isFingerprintEnroll()) {
       Fingerprint::Enroller middleFingerEnroller(&middleFinger, &screen, documentsProcessor.fingerprintEnrollId);
-      middleFingerEnroller.call();
+
+      muxManager.step(MuxManager::FINGERPRINT_SCAN_STEP);
+      deployerState.update("step", MuxManager::FINGERPRINT_SCAN_STEP);
+      deployerState.update("enrolling", true);
+      awsManager.reportState(deployerState.jsonState());
+
+      if(middleFingerEnroller.call() == Fingerprint::Enroller::ENROLL_OK) {
+        deployerState.update("enrolled", true);
+        deployerState.update("finger_id", documentsProcessor.fingerprintEnrollId);
+      }
+
+      deployerState.update("enrolling", false);
+      deviceActions.execute(DeviceActions::READY, 5);
     }
 
     if(documentsProcessor.hasDesiredKey()) {
@@ -146,21 +142,18 @@ void setup() {
   Fingerprint::Initializer middleFingerInitializer(&middleFinger, &screen);
   middleFingerInitializer.call();
 
-  awsManager.reportState(deployerState.jsonState());
-
-  screen.reset();
-  screen.say("Hello Decisely!");
-
-  muxManager.step(MuxManager::READY_STEP);
+  deviceActions.execute(DeviceActions::READY);
+  delay(1000);
 }
 
 void loop() {
   buttonsManager.process(&buttonsActionCallback);
   awsManager.process();
   muxManager.process();
+  deviceActions.process();
   screen.process();
 
-  if(muxManager.isReadyStep()) {
+  if(muxManager.step() == MuxManager::READY_STEP) {
     middleFingerReader.process();
   }
 

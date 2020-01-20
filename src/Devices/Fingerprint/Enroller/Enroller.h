@@ -16,8 +16,11 @@ namespace Fingerprint {
 			void reportError();
 
 		public:
+			static const uint8_t ENROLL_FAIL = -1;
+			static const uint8_t ENROLL_OK = 1;
+
 			Enroller(Adafruit_Fingerprint*, TFTScreen*, int);
 
-			void call();
+			uint8_t call();
 	};
 };

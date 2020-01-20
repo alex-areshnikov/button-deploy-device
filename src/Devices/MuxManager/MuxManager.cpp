@@ -2,32 +2,23 @@
 
 MuxManager::MuxManager(int s1, int s2, int s3, int s4) {
   wakeupper = new Wakeupper(WAKEUP_INTERVAL_MS);
-  delayedStepExecuter = new DelayedExecuter();
   muxController = new CD74HC4067(s1, s2, s3, s4);
   
   readyStep();
 };
 
 void MuxManager::step(int step, bool erred) {  
-  delayedStepExecuter->cancel();
   this->erred = erred;
   if(erred) { erredStep = step; }
   set(step);
 };
 
-void MuxManager::delayedStep(float seconds, int step, bool erred) {
-  requestedStep = step;
-  requestedErred = erred;
-
-  delayedStepExecuter->executeRequest(seconds);
+int MuxManager::step() {
+  return currentStep;
 };
 
 void MuxManager::readyStep() {  
   step(READY_STEP);
-};
-
-bool MuxManager::isReadyStep() {
-  return(currentStep == READY_STEP);
 };
 
 void MuxManager::nextStep() {
@@ -59,10 +50,6 @@ void MuxManager::ledCheck() {
 };
 
 void MuxManager::process() {
-  if(delayedStepExecuter->readyToExecute()) {
-    step(requestedStep, requestedErred);
-  }
-
   if(!erred) return;
   if(!wakeupper->isWakeupTime()) return;
 

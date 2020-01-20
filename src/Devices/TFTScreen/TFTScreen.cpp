@@ -3,6 +3,7 @@
 
 TFTScreen::TFTScreen(int8_t cs, int8_t dc, int8_t rst) {
   this->tft = new Adafruit_ST7735(cs, dc, rst);
+  counter = new Counter();
 }
 
 void TFTScreen::initialize() {  
@@ -12,8 +13,6 @@ void TFTScreen::initialize() {
   tft->setRotation(1);
   tft->setTextColor(ST77XX_MAGENTA, ST77XX_BLACK);
   tft->setTextSize(1); // 26 symbols horizontally
-
-  delayedSayExecuter = new DelayedExecuter();
 }
 
 void TFTScreen::reset() {
@@ -25,16 +24,15 @@ void TFTScreen::softReset() {
   tft->setCursor(0, 0);
 }
 
-void TFTScreen::delayedSay(String text, float seconds) {
-  delayedText = text;
-  delayedSayExecuter->executeRequest(seconds);
+void TFTScreen::countdownFor(int seconds) {
+  counter->countSeconds(seconds);
 }
 
 void TFTScreen::renderCountdown() {
-  if(!delayedSayExecuter->isExecutionRequested()) return;
+  if(counter->currentSecond() == 0) return;
 
   char countdownBuffer[2];
-  sprintf(countdownBuffer, "%2d", delayedSayExecuter->secondsToExecution());
+  sprintf(countdownBuffer, "%2d", counter->currentSecond());
   if(strcmp(this->countdownBuffer, countdownBuffer) == 0) return;
   strcpy(this->countdownBuffer, countdownBuffer);
 
@@ -44,11 +42,6 @@ void TFTScreen::renderCountdown() {
 
 void TFTScreen::process() {
   renderCountdown();
-  if(!delayedSayExecuter->readyToExecute()) return;
-
-  reset();
-  sayln(delayedText);
-  delayedSayExecuter->cancel();
 }
 
 void TFTScreen::say(String text) {

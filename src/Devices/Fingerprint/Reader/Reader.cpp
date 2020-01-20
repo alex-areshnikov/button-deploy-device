@@ -17,20 +17,8 @@ void Reader::process() {
   if (middleFinger->image2Tz() != FINGERPRINT_OK) return;
 
   if (middleFinger->fingerFastSearch() == FINGERPRINT_OK) {  
-		(*scanSuccessCallback)(middleFinger->fingerID);
-		// found a match!
-		// screen->reset();
-		// screen->say("ID #"); 
-		// screen->say(middleFinger->fingerID); 
-		// screen->say(". Confidence = "); 
-		// screen->sayln(middleFinger->confidence);		
+		(*scanSuccessCallback)(middleFinger->fingerID);	
 	} else {		
 		(*scanFailureCallback)();
-		// screen->sayln("Unrecognized finger");
 	}
-
-	// delay(1000);
-
-	// screen->reset();
-	// screen->sayln("Hello Decisely");
 };

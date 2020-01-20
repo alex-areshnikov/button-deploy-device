@@ -6,9 +6,9 @@ DeployerState::DeployerState() {
 	stateObj["desired"] = nullptr;
 
 	// TODO: reportedObj["button"] = ButtonParser::NO_BUTTON;
-  // TODO: reportedObj["step"] = MuxManager::READY_STEP;
 	reportedObj["button"] = "no_button_pressed";
-  reportedObj["step"] = 0;
+  reportedObj["step"] = MuxManager::READY_STEP;
+	reportedObj["access_granted"] = false;
 
   reportedObj["error"] = false;
 };
@@ -18,6 +18,10 @@ void DeployerState::update(const char* key, const char* value) {
 };
 
 void DeployerState::update(const char* key, int value) {
+	reportedObj[key] = value;
+};
+
+void DeployerState::update(const char* key, bool value) {
 	reportedObj[key] = value;
 };
 

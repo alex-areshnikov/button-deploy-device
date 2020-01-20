@@ -4,14 +4,13 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>
-#include "../../Services/DelayedExecuter/DelayedExecuter.h"
+#include "../../Services/Counter/Counter.h"
 
 class TFTScreen {
   private:  
   Adafruit_ST7735 *tft;
-
-  DelayedExecuter *delayedSayExecuter;
-  String delayedText;
+  Counter *counter;
+    
   char countdownBuffer[2];
 
   public:
@@ -23,6 +22,7 @@ class TFTScreen {
   void clearLine();
   void delayedSay(String, float);
   void process();
+  void countdownFor(int);
   void renderCountdown();
   void say(String);
   void sayln(String);
