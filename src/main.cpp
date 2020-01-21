@@ -143,7 +143,6 @@ void setup() {
   middleFingerInitializer.call();
 
   deviceActions.execute(DeviceActions::READY);
-  delay(1000);
 }
 
 void loop() {

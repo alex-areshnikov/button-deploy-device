@@ -34,6 +34,7 @@ class TFTScreen {
   void sayln(const char*);
   void say(int);
   void sayln(int);
+  void startup();
 };
 
 #endif

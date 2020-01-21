@@ -60,7 +60,7 @@ void DeviceActions::ready() {
 	awsManager->reportState(deployerState->jsonState());
 	
 	screen->reset();
-	screen->sayln("Hello Decisely");
+	screen->startup();
 }
 
 void DeviceActions::accessGranted() {

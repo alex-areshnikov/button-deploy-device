@@ -24,6 +24,20 @@ void TFTScreen::softReset() {
   tft->setCursor(0, 0);
 }
 
+void TFTScreen::startup() {
+  tft->fillScreen(ST77XX_BLACK);
+  tft->drawLine(0, 30, 130, 30, ST77XX_WHITE);
+  tft->setTextSize(2);
+  tft->setCursor(35, 40);
+  tft->println("Decisely");
+  tft->setTextColor(ST77XX_WHITE, ST77XX_BLACK);
+  tft->setCursor(35, 65);
+  tft->println("Deployer");
+  tft->drawLine(35, 90, 160, 90, ST77XX_MAGENTA);
+  tft->setTextColor(ST77XX_MAGENTA, ST77XX_BLACK);
+  tft->setTextSize(1);
+}
+
 void TFTScreen::countdownFor(int seconds) {
   counter->countSeconds(seconds);
 }
