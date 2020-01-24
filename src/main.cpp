@@ -77,6 +77,10 @@ void subscribeCallback(char* topic, byte* payload, unsigned int length) {
       muxManager.step(documentsProcessor.step(), documentsProcessor.isErred());
       deployerState.update("step", documentsProcessor.step());        
       deployerState.update("error", documentsProcessor.isErred());
+
+      if(documentsProcessor.isErred()) {
+        deviceActions.execute(DeviceActions::READY, 5);
+      }
     } 
 
     if(documentsProcessor.isFingerprintEnroll()) {
