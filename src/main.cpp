@@ -12,9 +12,10 @@
 #include "Services/DeployerState/DeployerState.h"
 #include "Services/DocumentsProcessor/DocumentsProcessor.h"
 #include "Services/DeviceActions/DeviceActions.h"
+#include "Services/FirmwareOTAUpdater/FirmwareOTAUpdater.h"
 
-#define WIFI_SSID ""
-#define WIFI_PASSWORD ""
+#define WIFI_SSID "Decisely"
+#define WIFI_PASSWORD "B3n3fits.2017!"
 
 #define TFT_CS     D4
 #define TFT_RST    D6                     
@@ -28,6 +29,7 @@ WiFiConnector wiFiConnector(WIFI_SSID, WIFI_PASSWORD);
 DeployerState deployerState;
 AwsManager awsManager;
 DeviceActions deviceActions(&screen, &muxManager, &awsManager, &deployerState);
+FirmwareOTAUpdater firmwareOTAUpdater(&screen);
 
 StaticJsonDocument<1024> awsIotJson;
 
@@ -141,6 +143,8 @@ void setup() {
 
   Fingerprint::Initializer middleFingerInitializer(&middleFinger, &screen);
   middleFingerInitializer.call();
+  
+  // firmwareOTAUpdater.initialize();
 
   deviceActions.execute(DeviceActions::READY);
 }
@@ -151,6 +155,7 @@ void loop() {
   muxManager.process();
   deviceActions.process();
   screen.process();
+  // firmwareOTAUpdater.process();
 
   if(muxManager.step() == MuxManager::READY_STEP) {
     middleFingerReader.process();
