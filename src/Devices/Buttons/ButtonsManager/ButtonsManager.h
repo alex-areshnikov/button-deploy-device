@@ -1,13 +1,9 @@
 #include "../ButtonsVoltageReader/ButtonsVoltageReader.h"
 #include "../ButtonParser/ButtonParser.h"
 #include "../ButtonsHistory/ButtonsHistory.h"
-#include "../../../Services/Wakeupper/Wakeupper.h"
 
 class ButtonsManager {
-	private:		
-		static const int WAKEUP_INTERVAL_MS = 50;
-
-		Wakeupper *wakeupper;
+	private:	
 		ButtonsVoltageReader *buttonsVoltageReader;
 		ButtonParser *buttonParser;
 		ButtonsHistory *buttonsHistory;

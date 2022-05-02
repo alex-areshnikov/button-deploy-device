@@ -56,7 +56,7 @@ bool DocumentsProcessor::erred() {
 };
 
 bool DocumentsProcessor::hasFingerprintKey() {
-	if(!containsDesiredKey("fingerprint")) return(false);
+	return(!containsDesiredKey("fingerprint"));
 };
 
 bool DocumentsProcessor::isFingerprintEnroll() {

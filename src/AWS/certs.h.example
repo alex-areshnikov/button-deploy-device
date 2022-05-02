@@ -1,0 +1,26 @@
+#include <pgmspace.h>
+ 
+#define CERTS
+ 
+static const char AWS_CERT_CA[] PROGMEM = R"EOF(
+-----BEGIN CERTIFICATE-----
+
+-----END CERTIFICATE-----
+)EOF";
+ 
+ 
+// Copy contents from XXXXXXXX-certificate.pem.crt here ▼
+static const char AWS_CERT_CLIENT[] PROGMEM = R"KEY(
+-----BEGIN CERTIFICATE-----
+
+-----END CERTIFICATE-----
+ 
+)KEY";
+ 
+ 
+// Copy contents from  XXXXXXXX-private.pem.key here ▼
+static const char AWS_CERT_PRIVATE[] PROGMEM = R"KEY(
+-----BEGIN RSA PRIVATE KEY-----
+
+-----END RSA PRIVATE KEY-----
+)KEY";

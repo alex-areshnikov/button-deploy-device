@@ -1,7 +1,6 @@
 #include "FirmwareOTAUpdater.h"
 
-FirmwareOTAUpdater::FirmwareOTAUpdater(TFTScreen* screen) {
-	wakeupper = new Wakeupper(WAKEUP_INTERVAL_MS);
+FirmwareOTAUpdater::FirmwareOTAUpdater(TFTScreen* screen) {	
 	this->screen = screen;
 }
 
@@ -56,8 +55,6 @@ void FirmwareOTAUpdater::initialize() {
 }
 
 void FirmwareOTAUpdater::process() {
-	if(!wakeupper->isWakeupTime()) return;
-
 	ArduinoOTA.handle();
 }
 

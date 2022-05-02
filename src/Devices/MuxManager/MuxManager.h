@@ -2,14 +2,12 @@
 #define mux_manager_h
 
 #include <CD74HC4067.h>
-#include "../../Services/Wakeupper/Wakeupper.h"
 
 class MuxManager {
 	private:		
 		static const int WAKEUP_INTERVAL_MS = 300;
 
 		CD74HC4067 *muxController;
-		Wakeupper *wakeupper;
 		
 		int currentStep;
 		int erredStep;

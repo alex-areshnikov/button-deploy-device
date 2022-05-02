@@ -1,3 +1,4 @@
 .pio
 .vscode
 src/AWS/certs.h
+src/Devices/Wemos/secrets.h

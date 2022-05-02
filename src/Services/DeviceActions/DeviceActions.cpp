@@ -45,7 +45,7 @@ void DeviceActions::executeRequestedAction() {
 void DeviceActions::process() {
 	if(delayedExecuter->readyToExecute()) {		
 		delayedExecuter->cancel();
-    executeRequestedAction();		
+    	executeRequestedAction();		
   }
 }
 
@@ -65,15 +65,15 @@ void DeviceActions::ready() {
 
 void DeviceActions::accessGranted() {
 	muxManager->step(MuxManager::FINGERPRINT_SCAN_STEP);
-  delay(200);
+  	delay(200);
 
-  muxManager->step(MuxManager::ACCESS_GRANTED_STEP);
+  	muxManager->step(MuxManager::ACCESS_GRANTED_STEP);
 	deployerState->update("step", MuxManager::ACCESS_GRANTED_STEP);
 	deployerState->update("access_granted", true);
 	awsManager->reportState(deployerState->jsonState());
 
-  screen->reset();
-  screen->sayln("Access Granted!");
+  	screen->reset();
+  	screen->sayln("Access Granted!");
 }
 
 void DeviceActions::accessDenied() {
@@ -82,7 +82,7 @@ void DeviceActions::accessDenied() {
 	deployerState->update("error", true);
 	awsManager->reportState(deployerState->jsonState());
 
-  screen->reset();
-  screen->sayln("Access Denied");
-  screen->sayln("Unrecognized finger");  
+  	screen->reset();
+  	screen->sayln("Access Denied");
+  	screen->sayln("Unrecognized finger");  
 }

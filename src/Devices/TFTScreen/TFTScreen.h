@@ -1,6 +1,7 @@
 #ifndef tft_screen_h
 #define tft_screen_h
 
+#include <string>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <SPI.h>

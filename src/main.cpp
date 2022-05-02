@@ -4,6 +4,7 @@
 #include "Devices/TFTScreen/TFTScreen.h"
 #include "Devices/Buttons/ButtonsManager/ButtonsManager.h"
 #include "Devices/MuxManager/MuxManager.h"
+#include "Devices/Wemos/secrets.h"
 #include "Devices/Wemos/WiFiConnector/WiFiConnector.h"
 #include "Devices/Fingerprint/Initializer/Initializer.h"
 #include "Devices/Fingerprint/Reader/Reader.h"
@@ -13,9 +14,7 @@
 #include "Services/DocumentsProcessor/DocumentsProcessor.h"
 #include "Services/DeviceActions/DeviceActions.h"
 #include "Services/FirmwareOTAUpdater/FirmwareOTAUpdater.h"
-
-#define WIFI_SSID "Decisely"
-#define WIFI_PASSWORD "B3n3fits.2017!"
+#include "Services/RecurrentCounter/RecurrentCounter.h"
 
 #define TFT_CS     D4
 #define TFT_RST    D6                     
@@ -32,6 +31,10 @@ DeviceActions deviceActions(&screen, &muxManager, &awsManager, &deployerState);
 FirmwareOTAUpdater firmwareOTAUpdater(&screen);
 
 StaticJsonDocument<1024> awsIotJson;
+
+RecurrentCounter recurrentCounter1S(1000);
+RecurrentCounter recurrentCounter300MS(300);
+RecurrentCounter recurrentCounter50MS(50);
 
 void debugCallback(char* message) {
   screen.reset();
@@ -108,7 +111,7 @@ void subscribeCallback(char* topic, byte* payload, unsigned int length) {
 
 void buttonsActionCallback(const char* buttonCode) {
   deployerState.update("button", buttonCode);
-  awsManager.reportState(deployerState.jsonState());
+  //awsManager.reportState(deployerState.jsonState());
 }
 
 void setupWiFi() {
@@ -153,18 +156,24 @@ void setup() {
   deviceActions.execute(DeviceActions::READY);
 }
 
-void loop() {
-  buttonsManager.process(&buttonsActionCallback);
-  awsManager.process();
-  muxManager.process();
-  deviceActions.process();
-  screen.process();
-  // firmwareOTAUpdater.process();
-
-  if(muxManager.step() == MuxManager::READY_STEP) {
-    middleFingerReader.process();
+void loop() {  
+  if(recurrentCounter50MS.isReady()) {
+    buttonsManager.process(&buttonsActionCallback);
+    deviceActions.process();
+    // firmwareOTAUpdater.process();
+  }
+  
+  if(recurrentCounter300MS.isReady()) {
+    muxManager.process();
   }
 
-  delay(50);
+  if(recurrentCounter1S.isReady()) {
+    screen.process();
+    awsManager.process();
+
+    if(muxManager.step() == MuxManager::READY_STEP) {
+      middleFingerReader.process();
+    }
+  }
 }
 

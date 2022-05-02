@@ -1,7 +1,6 @@
 #include "MuxManager.h"
 
 MuxManager::MuxManager(int s1, int s2, int s3, int s4) {
-  wakeupper = new Wakeupper(WAKEUP_INTERVAL_MS);
   muxController = new CD74HC4067(s1, s2, s3, s4);
   
   readyStep();
@@ -51,7 +50,6 @@ void MuxManager::ledCheck() {
 
 void MuxManager::process() {
   if(!erred) return;
-  if(!wakeupper->isWakeupTime()) return;
 
   if(currentStep == ERROR_STEP) {
     set(erredStep);
