@@ -2,23 +2,42 @@
 
 AwsManager::AwsManager() {
 	wiFiClientSecure = WiFiClientSecure();	
-	mqttClient = PubSubClient(wiFiClientSecure);
-};
+	mqttClient = PubSubClient(AWS_IOT_ENDPOINT, 8883, wiFiClientSecure);
+
+	caCert = new BearSSL::X509List(AWS_CERT_CA);
+	clientCert = new BearSSL::X509List(AWS_CERT_CLIENT);
+	clientKey = new BearSSL::PrivateKey(AWS_CERT_PRIVATE);
+}
 
 void AwsManager::setup(void (onMessageCallback)(char*, byte*, unsigned int)) {	
-	wiFiClientSecure.setInsecure();
-	wiFiClientSecure.setCACert((const uint8_t *)AWS_CERT_CA, strlen_P(AWS_CERT_CA));
-	wiFiClientSecure.setCertificate((const uint8_t *)AWS_CERT_CLIENT, strlen_P(AWS_CERT_CLIENT));
-	wiFiClientSecure.setPrivateKey((const uint8_t *)AWS_CERT_PRIVATE, strlen_P(AWS_CERT_PRIVATE));
-		
-	mqttClient.setServer(AWS_IOT_ENDPOINT, 8883);
+	wiFiClientSecure.setTrustAnchors(caCert);
+	wiFiClientSecure.setClientRSACert(clientCert, clientKey);
+	wiFiClientSecure.setBufferSizes(2048, 2048);
+				
   	mqttClient.setCallback(onMessageCallback);	
+}
+
+void AwsManager::reconnect(void (*connectingCallback)(char*, int)) {
+	char errBuff[256];
+	int errCode;
+	
+	while(!mqttClient.connected()) {
+		if(mqttClient.connect(AWS_IOT_DEVICE_NAME)) {			
+			mqttClient.setBufferSize(2048);
+			mqttClient.subscribe(AWS_IOT_UPDATE_DOCUMENTS_TOPIC);  
+			mqttClient.loop();   
+		} else {
+			errCode = wiFiClientSecure.getLastSSLError(errBuff, 256);
+			(*connectingCallback)(errBuff, errCode);
+			delay(2000);
+		}
+	}
 }
 
 void AwsManager::reconnect() {
 	while(!mqttClient.connected()) {
 		if(mqttClient.connect(AWS_IOT_DEVICE_NAME)) {
-			//mqttClient.subscribe(AWS_IOT_UPDATE_DOCUMENTS_TOPIC);  
+			mqttClient.subscribe(AWS_IOT_UPDATE_DOCUMENTS_TOPIC);  
 			mqttClient.loop();   
 		} else {
 			delay(2000);
@@ -32,8 +51,8 @@ void AwsManager::process() {
 	}
 
 	mqttClient.loop();
-};
+}
 
 void AwsManager::reportState(char* jsonState) {
-	//mqttClient.publish(AWS_IOT_UPDATE_TOPIC, jsonState);
+	mqttClient.publish(AWS_IOT_UPDATE_TOPIC, jsonState);
 }
